@@ -2,16 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\ApiResponse;
+use App\Models\PriceHistory;
+use Exception;
 use Illuminate\Http\Request;
 
 class PriceHistoryController extends Controller
 {
+    use ApiResponse;
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        try {
+            $priceHistories = PriceHistory::query()
+                ->with('monitoredProduct')
+                ->latest()
+                ->paginate();
+
+            return $this->successResponse($priceHistories, "Price histories retrieved successfully");
+        } catch (Exception $e) {
+            return $this->errorResponse("Failed to retrieve price histories", 500, $e->getMessage());
+        }
     }
 
     /**
@@ -19,30 +32,27 @@ class PriceHistoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        try {
+            $validated = $request->validate([
+                'monitored_product_id' => ['required', 'integer', 'exists:monitored_products,id'],
+                'price' => ['required', 'integer'],
+                'detected_at' => ['required', 'date'],
+            ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+            $priceHistory = PriceHistory::create([
+                'monitored_product_id' => $validated['monitored_product_id'],
+                'price' => $validated['price'],
+                'detected_at' => $validated['detected_at'],
+            ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            $priceHistory->monitoredProduct->update([
+                'current_price' => $validated['price'],
+                'last_checked_at' => $validated['detected_at']
+            ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            return $this->createdResponse($priceHistory, "Price history stored successfully");
+        } catch (Exception $e) {
+            return $this->errorResponse("Failed to store price history", 500, $e->getMessage());
+        }
     }
 }

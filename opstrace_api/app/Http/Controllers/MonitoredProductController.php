@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\ApiResponse;
+use App\Jobs\MonitoringJob;
+use App\Jobs\SendProductToScraper;
 use App\Models\MonitoredProduct;
 use Exception;
 use Illuminate\Http\Request;
@@ -21,9 +23,9 @@ class MonitoredProductController extends Controller
                 ->latest()
                 ->paginate();
 
-            $this->successResponse($monitoredProducts, "Monitored products retrieved successfully");
+            return $this->successResponse($monitoredProducts, "Monitored products retrieved successfully");
         } catch (Exception $e) {
-            $this->errorResponse("Failed to retrieve monitored products", 500, $e->getMessage());
+            return $this->errorResponse("Failed to retrieve monitored products", 500, $e->getMessage());
         }
     }
 
@@ -47,6 +49,8 @@ class MonitoredProductController extends Controller
                 'monitoring_status' => 'success'
             ]);
 
+            SendProductToScraper::dispatch($monitoredProduct->toArray());
+
             return $this->createdResponse($monitoredProduct, "Monitored product stored successfully");
         } catch (Exception $e) {
             return $this->errorResponse("Failed to store monitored products", 500, $e->getMessage());
@@ -54,24 +58,16 @@ class MonitoredProductController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, MonitoredProduct $monitoredProduct)
     {
+        abort_if(
+            $monitoredProduct->user_id !== $request->user()->id,
+            403
+        );
+        
         try {
-            abort_if(
-                $monitoredProduct->user_id !== $request->user()->id,
-                403
-            );
-
             $validated = $request->validate([
                 'name' => ['sometimes', 'string', 'max:255'],
                 'marketplace' => ['sometimes', 'string', 'max:100'],
