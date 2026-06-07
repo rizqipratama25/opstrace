@@ -6,6 +6,7 @@ use App\ApiResponse;
 use App\Models\PriceHistory;
 use Exception;
 use Illuminate\Http\Request;
+use Telegram\Bot\Laravel\Facades\Telegram;
 
 class PriceHistoryController extends Controller
 {
@@ -39,16 +40,31 @@ class PriceHistoryController extends Controller
                 'detected_at' => ['required', 'date'],
             ]);
 
+            
             $priceHistory = PriceHistory::create([
                 'monitored_product_id' => $validated['monitored_product_id'],
                 'price' => $validated['price'],
                 'detected_at' => $validated['detected_at'],
             ]);
 
+            $price = $priceHistory->price;
+            $formattedPrice = number_format($price, 0, ',', '.');
+            $detectedAt = $priceHistory->detected_at;
+            $formattedDetectedAt = $detectedAt->format('F j, Y, g:i A');
+
             $priceHistory->monitoredProduct->update([
-                'current_price' => $validated['price'],
-                'last_checked_at' => $validated['detected_at']
+                'current_price' => $price,
+                'last_checked_at' => $detectedAt
             ]);
+
+            if ($priceHistory->monitoredProduct->user->telegram_id) {
+                Telegram::bot('mybot')->sendMessage([
+                    "chat_id" => $priceHistory->monitoredProduct->user->telegram_id,
+                    "text" => "
+                        ✅ Product is now being monitored.\n\n📦 Product: {$priceHistory->monitoredProduct->name}\n💰 Current Price: Rp {$formattedPrice}\n🕒 Last checked: {$formattedDetectedAt}
+                    "
+                ]);
+            }
 
             return $this->createdResponse($priceHistory, "Price history stored successfully");
         } catch (Exception $e) {

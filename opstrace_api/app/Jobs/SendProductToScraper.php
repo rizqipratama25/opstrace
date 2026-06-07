@@ -27,7 +27,11 @@ class SendProductToScraper implements ShouldQueue
     {
         Redis::rPush(
             'scraper_queue',
-            json_encode($this->product)
+            json_encode([
+                "id" => $this->product['id'],
+                "name" => $this->product['name'],
+                "product_url" => $this->product['product_url'],
+            ])
         );
     }
 }
