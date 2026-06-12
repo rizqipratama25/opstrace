@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('type', [
                 'price_up',
                 'price_down',
+                'price_monitored'
             ]);
 
             $table->unsignedBigInteger('previous_price');

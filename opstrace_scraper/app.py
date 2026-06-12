@@ -5,13 +5,29 @@ import requests
 from datetime import datetime
 
 # Connect to Redis
-r = redis.Redis(host="127.0.0.1", port=6379, db=0, decode_responses=True)
+r = redis.Redis(
+    host="127.0.0.1", 
+    port=6379, 
+    db=0, 
+    decode_responses=True,
+    socket_timeout=None,
+    socket_connect_timeout=10,
+    health_check_interval=30,
+)
 print("Connected to Redis")
 
 while True:
 
     # Pop a message from the queue
-    _, payload = r.brpop('laravel-database-scraper_queue')
+    result = r.brpop('laravel-database-scraper_queue', timeout=5)
+    
+    # Check if the result is None
+    if result is None:
+        print("No job yet...")
+        continue
+    
+    # Extract the payload from the result
+    _, payload = result
 
     # Decode the payload
     product = json.loads(payload)

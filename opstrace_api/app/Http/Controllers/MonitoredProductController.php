@@ -49,7 +49,7 @@ class MonitoredProductController extends Controller
                 'monitoring_status' => 'success'
             ]);
 
-            SendProductToScraper::dispatch($monitoredProduct->toArray());
+            SendProductToScraper::dispatch($monitoredProduct);
 
             return $this->createdResponse($monitoredProduct, "Monitored product stored successfully");
         } catch (Exception $e) {

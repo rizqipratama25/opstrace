@@ -10,15 +10,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::call(function () {
-    $products = MonitoredProduct::all();
-
-        foreach ($products as $product) {
-
-        SendProductToScraper::dispatch([
-            'id' => $product->id,
-            'name' => $product->name,
-            'url' => $product->url,
-        ]);
-    }
-})->everyMinute();
+Schedule::command('app:send-job-to-scraper-command')->everyThirtyMinutes();

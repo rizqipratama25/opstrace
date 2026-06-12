@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+    --color-background-primary: #fafafa;
+    --color-background-secondary: #ffffff;
+
+    --color-primary: #EA580C;
+    --color-secondary: #303030;
+
+    --color-border-primary: #E5E7EB;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--color-background-primary);
+        color: var(--color-text-primary);
+        font-family: "Inter", sans-serif;
+        overflow-x: hidden;
+    }
+}
