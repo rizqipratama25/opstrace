@@ -11,7 +11,7 @@ const queryClient = new QueryClient()
 
 const router = createBrowserRouter([
   {path: '/', element: <App />},
-  {path: '/monitored-product', element: <MonitoredProductPage />},
+  {path: '/monitored-products', element: <MonitoredProductPage />},
   {path: '/price-history', element: <PriceHistoryPage />},
 ]);
 

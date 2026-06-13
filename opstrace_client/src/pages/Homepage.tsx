@@ -1,9 +1,42 @@
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import Navbar from "../components/Navbar"
 import Modal from "../components/Modal"
+import { useLogin } from "../hooks/auth/useLogin"
+import toast from "react-hot-toast"
+import { useNavigate } from "react-router-dom"
 
 const Homepage = () => {
+    const navigate = useNavigate()
     const [showAuthModal, setShowAuthModal] = useState(false)
+
+    // Login
+    const {mutate: login, isPending} = useLogin();
+
+    const [form, setForm] = useState({
+        email: "",
+        password: ""
+    });
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+
+        login(
+            {
+                email: form.email,
+                password: form.password
+            },
+            {
+                onSuccess: () => {
+                    toast.success("Login Successful");
+                    navigate('/monitored-products')
+                },
+                onError: () => {
+                    const message = "Invalid Credentials";
+                    toast.error(message);
+                }
+            }
+        )
+    }
 
     return (
         <>
@@ -23,11 +56,36 @@ const Homepage = () => {
 
             {showAuthModal && (
                 <Modal setShowAuthModal={setShowAuthModal} modalTitle="Log In">
-                    <form className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4 text-secondary">
                         <input
-                            type="text"
-                            
+                            type="email"
+                            placeholder="Email"
+                            className="w-full bg-background-primary border border-secondary/50 focus:border-primary/70 focus:ring-1 focus:ring-primary/70 outline-none rounded-lg p-2 transition-all duration-300"
+                            value={form.email}
+                            onChange={(e) => 
+                                setForm((prev) => ({...prev, email: e.target.value}))
+                            }
+                            required
                         />
+
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            className="w-full bg-background-primary border border-secondary/50 focus:border-primary/70 focus:ring-1 focus:ring-primary/70 outline-none rounded-lg p-2 transition-all duration-300"
+                            value={form.password}
+                            onChange={(e) => 
+                                setForm((prev) => ({...prev, password: e.target.value}))
+                            }
+                            required
+                        />
+
+                        <button
+                            type="submit"
+                            disabled={isPending}
+                            className="w-full bg-primary hover:bg-primary/90 disabled:bg-primary/60 text-white py-2 rounded-lg font-medium  cursor-pointer"
+                        >
+                            {isPending ? "Logging In..." : "Log In"}
+                        </button>
                     </form>
                 </Modal>
             )}

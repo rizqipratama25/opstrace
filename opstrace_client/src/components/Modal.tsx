@@ -13,9 +13,8 @@ const Modal = ({ setShowAuthModal, modalTitle, children }: { setShowAuthModal: D
                     >
                         <X />
                     </button>
-
-                    {children}
                 </div>
+                    {children}
             </div>
         </div>
     )
